@@ -14,10 +14,11 @@ namespace GetNationStats
         private static void Main(string[] args)
         {
             string paramNationId = "";
+            string paramApiKey = "";
 
             if (args.Length % 2 != 0 || args.Length == 0)
             {
-                Console.WriteLine("Parameters: -nationid ###");
+                Console.WriteLine("Parameters: -nationid ### -apikey abcd###");
                 return;
             }
 
@@ -28,21 +29,26 @@ namespace GetNationStats
                     case "-nationid":
                         paramNationId = args[i + 1];
                         break;
+
+                    case "-apikey":
+                        paramApiKey = args[i + 1];
+                        break;
                 }
             }
 
             using (var httpClient = new HttpClient())
             {
                 var nationId = paramNationId;
+                var key = paramApiKey;
 
                 httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36");
-                var response = httpClient.GetStringAsync(new Uri("http://politicsandwar.com/api/nation/id=" + nationId)).Result;
+                var response = httpClient.GetStringAsync(new Uri("http://politicsandwar.com/api/nation/id=" + nationId + "&key=" + key)).Result;              
                 Nation nation = JsonConvert.DeserializeObject<Nation>(response);
 
                 var cities = new List<City>();
                 foreach (var cityid in nation.cityids)
                 {
-                    var result = httpClient.GetStringAsync(new Uri("http://politicsandwar.com/api/city/id=" + cityid)).Result;
+                    var result = httpClient.GetStringAsync(new Uri("http://politicsandwar.com/api/city/id=" + cityid + "&key=" + key)).Result;
                     var cityJSON = JsonConvert.DeserializeObject<City>(result);
                     var infraNeeded = (((cityJSON.Infrastructure - 2500)) * -1);
                     cityJSON.InfrastructureNeeded = (infraNeeded > 0) ? infraNeeded : 0;
